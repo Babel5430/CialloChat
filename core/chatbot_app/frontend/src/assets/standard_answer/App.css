@@ -1,0 +1,180 @@
+/* standard_qna_system/frontend/src/App.css */
+
+/* Basic styling for the third system */
+.App {
+  text-align: center;
+  padding: 20px;
+  background-color: #e9f7ef; /* Another different background */
+}
+
+.App-header {
+  margin-bottom: 20px;
+  color: #28a745; /* Green header color */
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  text-align: left;
+  max-height: 80vh;
+}
+
+.sidebar {
+  flex: 1;
+  max-width: 300px;
+  border-right: 1px solid #ccc;
+  padding-right: 20px;
+  display: flex; 
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.main-content {
+  flex: 3;
+  display: flex; 
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.panels {
+    display: flex;
+    gap: 20px;
+    flex-grow: 1; 
+    overflow-y: auto; 
+}
+
+.input-panel {
+    flex: 1;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.answer-panel {
+    flex: 1;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.error {
+  color: red;
+  margin-bottom: 20px;
+  background-color: #ffe0e0;
+  border: 1px solid red;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+/* Common form styles */
+.input-panel button, .input-panel input[type="text"], .input-panel textarea,
+.answer-panel button, .answer-panel input[type="text"], .answer-panel textarea {
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    width: calc(100% - 16px); /* Adjust width considering padding */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.input-panel button, .answer-panel button {
+    width: auto; /* Auto width for buttons */
+    cursor: pointer;
+    background-color: #007bff; /* Blue button color */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+.input-panel button:hover, .answer-panel button:hover {
+    opacity: 0.9;
+}
+
+
+/* List styling */
+.input-list ul, .answer-list ul {
+    list-style: none;
+    padding: 0;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0; 
+    margin-bottom: 10px;
+}
+
+.input-list li, .answer-list li {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Allow wrap */
+    word-break: break-word; /* Break long words */
+}
+
+.input-list li {
+    cursor: pointer; /* Inputs are clickable */
+}
+
+.input-list li:hover {
+     background-color: #f0f0f0;
+}
+
+.input-list li.selected {
+    background-color: #d0e0ff; /* Selected input color */
+    font-weight: bold;
+}
+
+
+.input-list li .input-text, .answer-list li .answer-text {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.input-list li .actions button, .answer-list li .actions button {
+    margin-left: 5px;
+    padding: 3px 8px;
+    font-size: 0.8em;
+    background-color: #007bff; /* Edit button */
+}
+
+.input-list li .actions button:last-child, .answer-list li .actions button:last-child {
+     background-color: #dc3545; /* Delete button color */
+}
+
+
+/* Styling for the Role Select */
+.role-select ul {
+    list-style: none;
+    padding: 0;
+    max-height: 300px; 
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+}
+
+.role-select li {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.role-select li:hover {
+    background-color: #f0f0f0;
+}
+
+.role-select li.selected {
+    background-color: #e9e9ff;
+    font-weight: bold;
+}
+
+.add-edit-form {
+    margin-top: auto; 
+    padding-top: 10px; 
+}

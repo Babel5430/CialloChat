@@ -1,0 +1,153 @@
+/* Ensure html, body, and root take full height for the theme */
+html, body, #root {
+    height: 100%;
+    margin: 0;
+    /* overflow: hidden; */ /* Be cautious with global overflow hidden, might affect scroll on pages that need it */
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #181818 !important; /* Uniform dark background */
+    color: #e0e0e0 !important; /* Default light text color */
+    overflow: hidden !important; /* Consider if causing issues */
+    text-align: left !important;
+}
+
+/* General link color */
+a {
+    color: #bb86fc; /* Requested purple/blue-ish color */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Main application container flex setup for NavBar and content */
+.main-app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* padding-top: 60px; */ /* Height of NavBar, if fixed */
+    box-sizing: border-box;
+    background-color: #181818; /* Ensure container itself is dark */
+}
+
+/* Content area below NavBar */
+.app-content {
+    padding: 20px;
+    max-width: 1200px; /* Or your preferred max-width */
+    margin: 0 auto;
+    flex-grow: 1; /* Takes remaining height */
+    overflow-y: auto; /* Allows content to scroll if it exceeds viewport */
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Styles for panels/sections within app-content to be white */
+.app-content .App, /* Generic App wrapper within pages */
+.app-content .sidebar,
+.app-content .main-content,
+.app-content .panels,
+.app-content .concept-panel,
+.app-content .query-panel,
+.app-content .input-panel,
+.app-content .answer-panel,
+.app-content .details-panel,
+.app-content .parser-panel,
+.app-content .visualization-panel,
+.app-content .section { /* Common class for sections */
+    background-color: #ffffff !important; /* Light background for panels */
+    color: #333333 !important; /* Dark text for panels */
+    border: 1px solid #444 !important; /* Darker border for minimalist dark theme */
+    border-radius: 5px;
+    /* padding: 15px; */ /* Ensure padding is consistent or handled by components */
+    /* box-shadow: none !important; */ /* For minimalist style, remove shadows if any */
+}
+
+/* Ensure sub-module buttons are visible on light backgrounds and themed */
+.app-content .App button,
+.app-content .section button, /* General buttons within white sections */
+.app-content .panels button {
+    background-color: #007bff; /* Blue */
+    color: white;
+    border: 1px solid #0056b3;
+}
+.app-content .App button:hover,
+.app-content .section button:hover,
+.app-content .panels button:hover {
+     opacity: 0.9;
+     background-color: #0056b3;
+}
+
+
+/* Keep Config Editor dark (as it has its own specific dark theme) */
+.app-content .config-page { /* This targets the wrapper div for ConfigEditor */
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border-color: #3a3a3a !important;
+}
+.app-content .config-page .config-group,
+.app-content .config-page input,
+.app-content .config-page select {
+    background-color: #2a2a2a !important;
+    color: #e0e0e0 !important;
+    border-color: #3a3a3a !important;
+}
+.app-content .config-page button {
+     background-color: #bb86fc !important; /* Purple/Blue color */
+     color: #181818 !important; /* Dark text for contrast */
+     border: none !important;
+}
+
+/* Chatbot specific styling, ensuring white background for the main container */
+.main-app-container.chatbot-mode {
+    max-width: none; 
+    padding: 0; 
+    margin: 0; 
+    overflow: hidden; 
+    position: relative; 
+}
+.main-app-container.chatbot-mode .app-content {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    overflow: hidden; /* Chatbot often controls its own scroll */
+}
+
+/* This is the critical style for the chatbot's white background */
+.chatbot-mode .app-container { /* Refers to the root div in assets/chatbot/App.js */
+    background-color: white !important;
+    position: absolute !important; /* Or flex setup, depending on ChatbotPage.js */
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    color: #333 !important; /* Text inside chatbot on white bg should be dark */
+}
+
+/* Internal chatbot elements styling (buttons, input) are handled by chatbot/App.css */
+/* but ensure they use the theme colors (blue, white, #bb86fc) */
+.chatbot-mode .input-section button {
+    background-color: #007bff !important;
+    color: white !important;
+}
+.chatbot-mode .input-section input {
+    background-color: #f0f0f0 !important; /* Lighter input on white bg */
+    color: #333 !important;
+    border: 1px solid #ccc !important;
+}
+
+.chatbot-mode .chat-area-container {
+  background-color: rgba(0, 0, 0, 0.05) !important; /* Very light grey for chat bubbles on white bg */
+  color: #333 !important; /* Dark text in chat bubbles */
+}
+.chatbot-mode .message-speaker {
+  color: #007bff !important; /* Blue for speaker name */
+}

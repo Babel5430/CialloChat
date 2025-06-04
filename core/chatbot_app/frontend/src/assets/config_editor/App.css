@@ -1,0 +1,108 @@
+.config-page {
+    padding: 20px;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    color: #e0e0e0;
+}
+
+.config-page h2 {
+    color: #ffffff;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.config-page form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.config-group {
+    border: 1px solid #3a3a3a;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.config-group legend {
+    color: #ffffff;
+    padding: 0 10px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+}
+
+.config-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.config-field label {
+    color: #b0b0b0;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+
+.config-field input[type="text"],
+.config-field input[type="number"],
+.config-field select {
+    padding: 10px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    font-size: 1em;
+    outline: none;
+}
+
+.config-field input[type="text"]:focus,
+.config-field input[type="number"]:focus,
+.config-field select:focus {
+    border-color: #bb86fc;
+    box-shadow: 0 0 0 0.2rem rgba(187, 134, 252, 0.25);
+}
+
+
+.config-field.sensitive span {
+    display: block;
+    padding: 10px;
+    background-color: #2a2a2a;
+    color: #b0b0b0;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+
+button {
+    padding: 12px 20px;
+    background-color: #bb86fc; 
+    color: #181818; 
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:disabled {
+    background-color: #4a4a4a;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    background-color: #9a59f5;
+}
+
+.error {
+    color: #cf6679;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.save-status {
+    color: #03dac6;
+    margin-top: 10px;
+    text-align: center;
+}

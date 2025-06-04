@@ -1,0 +1,370 @@
+/* body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    line-height: 1.6;
+    color: #333;
+} */
+
+.App {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    /* box-shadow: 0 0 10px rgba(0,0,0,0.1); */
+    border-radius: 8px;
+}
+
+h1, h2, h3 {
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px; /* Reduced margin */
+    color: #007bff;
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.close-system-btn {
+    background-color: #ffc107; /* Warning color */
+    color: #333;
+    border: 1px solid #e0a800;
+    padding: 10px 15px;
+    font-weight: bold;
+}
+.close-system-btn:hover {
+     background-color: #e0a800;
+     color: black;
+}
+
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #e0e0e0; 
+    margin: 30px 0;
+}
+
+button {
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+    margin-right: 5px; /* Add some default margin */
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+button:disabled {
+    background-color: #cccccc; /* Greyed out */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.error-message {
+    color: red;
+    border: 1px solid red;
+    padding: 10px;
+    margin: 15px 0;
+    background-color: #ffebeb;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.global-error {
+    margin-bottom: 20px;
+    margin-top: 5px; /* Reduced top margin */
+    border-radius: 8px;
+}
+
+.error-message button {
+    margin-left: 15px;
+    padding: 2px 8px;
+    font-size: 0.8em;
+    background-color: transparent;
+    border: 1px solid red;
+    color: red;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.error-message button:hover {
+    background-color: red;
+    color: white;
+}
+
+
+.loading-indicator {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    padding: 10px;
+    border: 1px solid #bee5eb;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+
+.section {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    background-color: #fff;
+    /* box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: box-shadow 0.3s ease; */
+}
+
+/* .section:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+} */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #007bff; /* Changed color */
+}
+.section-header h2 {
+    margin: 0;
+    color: #007bff;
+}
+.section-header button {
+    background-color: #17a2b8; /* Info color for Add */
+}
+.section-header button:hover {
+    background-color: #138496;
+}
+
+
+.list-item {
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    margin-bottom: 10px; /* Reduced margin */
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f9f9f9;
+    border-left: 5px solid #007bff;
+    transition: background-color 0.2s ease;
+}
+
+.list-item:hover {
+    background-color: #f0f8ff;
+}
+
+.list-item .actions button {
+    margin-left: 5px;
+    padding: 5px 10px;
+    font-size: 0.8em;
+}
+.list-item .actions button[style*="c82333"] { /* Specific style for delete */
+     background-color: #dc3545;
+}
+.list-item .actions button[style*="c82333"]:hover {
+     background-color: #c82333;
+}
+
+
+.list-item p {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+.list-item p strong {
+    display: inline-block;
+    min-width: 100px;
+}
+
+/* Task List Specific */
+.task-list ul {
+    list-style: none;
+    padding: 0;
+}
+.task-list li {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.task-list li input[type="checkbox"] {
+    margin-right: 15px; /* Space checkbox */
+    transform: scale(1.2); /* Make checkbox slightly larger */
+}
+
+.task-list li span {
+    flex-grow: 1; /* Allow description to take space */
+    margin-right: 10px;
+}
+
+.task-list li div { /* Container for buttons */
+    white-space: nowrap; /* Prevent buttons wrapping */
+}
+
+.task-list button {
+    background-color: #28a745; /* Confirm Green */
+    padding: 5px 10px;
+    font-size: 0.8em;
+}
+.task-list button + button { /* Cancel Button */
+    background-color: #dc3545; /* Cancel Red */
+}
+.task-list button:hover {
+    opacity: 0.8;
+}
+.task-list .task-batch-actions {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+.task-list .task-batch-actions button {
+    background-color: #6f42c1; /* Purple */
+    color: white;
+    font-size: 0.9em;
+}
+.task-list .task-batch-actions button:hover {
+     background-color: #5a349c;
+}
+.task-list .task-batch-actions button[style*="dc3545"] {
+    background-color: #dc3545; /* Ensure red */
+}
+.task-list .task-batch-actions button[style*="dc3545"]:hover {
+    background-color: #c82333;
+}
+
+
+/* Form Styling (General & Modal) */
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+    margin-top: 10px; /* Space above labels */
+}
+
+form input[type="text"],
+form input[type="number"],
+form textarea,
+form select {
+    display: block;
+    width: calc(100% - 22px); /* Full width minus padding/border */
+    margin-bottom: 10px; /* Reduced margin */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+form textarea {
+    resize: vertical;
+}
+
+form small {
+    display: block;
+    font-size: 0.8em;
+    color: #666;
+    margin-bottom: 15px;
+    margin-top: -5px;
+}
+
+form .form-row {
+    display: flex;
+    gap: 20px; /* Space between columns */
+    margin-bottom: 10px;
+}
+form .form-row .form-group {
+    flex: 1; /* Each group takes equal space */
+}
+form .form-row .form-group input,
+form .form-row .form-group select {
+    width: 100%; /* Full width within its group */
+    margin-bottom: 0;
+}
+form .checkbox-group label {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    margin-top: 15px; /* Align with inputs */
+}
+form .checkbox-group input[type="checkbox"] {
+    width: auto; /* Don't force full width */
+    margin-right: 10px;
+    margin-bottom: 0;
+}
+
+
+form .form-actions {
+    margin-top: 20px;
+    text-align: right;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+form button {
+    margin-left: 10px;
+    padding: 10px 15px;
+    font-size: 1em;
+}
+
+form button[type="button"] { /* Style for Cancel button */
+    background-color: #6c757d;
+}
+
+form button[type="button"]:hover {
+     background-color: #5a6268;
+}
+
+/* Confirmation Dialog Specifics */
+.confirmation-checkbox {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+.confirmation-checkbox label {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+}
+.confirmation-checkbox input[type="checkbox"] {
+    margin-right: 10px;
+}
+.confirmation-buttons {
+    margin-top: 20px;
+    text-align: right;
+}
+.confirmation-buttons .confirm-btn {
+    background-color: #dc3545;
+}
+.confirmation-buttons .confirm-btn:hover {
+     background-color: #c82333;
+}
+.confirmation-buttons .cancel-btn {
+     background-color: #6c757d;
+}
+.confirmation-buttons .cancel-btn:hover {
+     background-color: #5a6268;
+}

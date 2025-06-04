@@ -1,0 +1,91 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    min-width: 300px;
+    max-width: 80%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+  }
+  
+  .modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  
+  .modal-body {
+    /* Add styles as needed */
+  }
+  
+  /* Basic form styling */
+  .modal-body form label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+  }
+  .modal-body form input[type="text"],
+  .modal-body form input[type="number"],
+  .modal-body form textarea,
+  .modal-body form select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box; /* Include padding and border in element's total width/height */
+  }
+  .modal-body form textarea {
+      min-height: 80px;
+      resize: vertical;
+  }
+  .modal-body form button {
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+  }
+  .modal-body form button:hover {
+      background-color: #0056b3;
+  }
+  .modal-body form button[type="button"] {
+      background-color: #6c757d;
+      margin-left: 10px;
+  }
+  .modal-body form button[type="button"]:hover {
+      background-color: #5a6268;
+  }
+  .error-message {
+      color: red;
+      margin-bottom: 15px;
+  }

@@ -351,7 +351,7 @@ def run_flask_app():
             pause_and_exit(1, "Global RPCharacterChatbot initialization failed.")
     else:
         logger.info("Skipping global RPCharacterChatbot initialization (likely Flask reloader). Status: 'uninitialized'.")
-        app.config['CHATBOT_STATUS'] = 'uninitialized'
+        app.config['CHATBOT_STATUS'] = 'active'
 
     app.config['SECRET_KEY'] = config.get('SECRET_KEY', 'a_very_secure_default_fallback_key')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024

@@ -77,8 +77,15 @@ def create_chatbot_blueprint(chatbot_config):
                 abort(503, "Chatbot is not available due to an initialization failure. Check server logs.")
 
             if current_status == 'closed':
-                print("INFO: Chatbot status was 'closed'. Transitioning to 'active' for interaction.")
-                current_app.config['CHATBOT_STATUS'] = 'active'
+                try:
+                    shared_chatbot_instance.ensure_initialized()
+                    shared_chatbot_instance.start_new_session()
+                    current_app.config['CHATBOT_STATUS'] = 'active'
+                    print("INFO: Chatbot status was 'closed'. Transitioning to 'active' for interaction.")
+                except Exception as e:
+                    current_app.config['CHATBOT_STATUS'] = 'init_failed'
+                    print(f"Initialization failure{e}. Check server logs.")
+
                 current_history.clear()
                 current_round = 0
             elif current_status != 'active':
@@ -193,6 +200,8 @@ def create_chatbot_blueprint(chatbot_config):
             app_config = current_app.config.get('APP_CONFIG', {})
             chatbot_kwargs = app_config.get('CHATBOT', {})
             response = chatbot_instance.refresh_output(**chatbot_kwargs.get("CHAT_CONFIG", {}))
+            if not response:
+                return jsonify({"error": f"There is no input or no response."}), 400
             image_paths = get_image_file_path(response)
             if not isinstance(image_paths, list): image_paths = [image_paths] if image_paths else []
             image_serve_tokens = [_generate_image_token(path) for path in image_paths if path]
@@ -220,6 +229,8 @@ def create_chatbot_blueprint(chatbot_config):
             app_config = current_app.config.get('APP_CONFIG', {})
             chatbot_kwargs = app_config.get('CHATBOT', {})
             response = chatbot_instance.update_input(user_input=new_user_input, **chatbot_kwargs.get("CHAT_CONFIG", {}))
+            if not response:
+                return jsonify({"error": f"There is no input or no response."}), 400
             image_paths = get_image_file_path(response)
             if not isinstance(image_paths, list): image_paths = [image_paths] if image_paths else []
             image_serve_tokens = [_generate_image_token(path) for path in image_paths if path]
@@ -305,9 +316,9 @@ def create_chatbot_blueprint(chatbot_config):
     def resume_session_endpoint():
         chatbot_instance = _ensure_chatbot_active()
         global current_history, current_round, image_token_map
-        if chatbot_instance is None:
-            chatbot_instance = _ensure_chatbot_active()
-            if chatbot_instance is None: return jsonify({"error": "Chatbot not initialized."}), 500
+        # if chatbot_instance is None:
+        #     chatbot_instance = _ensure_chatbot_active()
+        if chatbot_instance is None: return jsonify({"error": "Chatbot not initialized."}), 500
 
         data = request.json
         session_id = data.get('session_id')
@@ -323,7 +334,6 @@ def create_chatbot_blueprint(chatbot_config):
             current_history = messages
             current_user_name = getattr(chatbot_instance, 'user', 'User')
             current_round = sum(1 for msg in current_history if msg.get("role") == current_user_name)
-            image_token_map.clear()
             return jsonify({"history": messages})
         except Exception as e:
             print(f"Error resuming session {session_id}: {e}")
@@ -348,7 +358,7 @@ def create_chatbot_blueprint(chatbot_config):
 
     @bp.route('/close', methods=['POST'])
     def close_endpoint():
-        global image_token_map
+        global image_token_map, current_round, current_history
         with current_app.config['CHATBOT_STATUS_LOCK']:
             chatbot_instance = current_app.config.get('SHARED_CHATBOT_INSTANCE')
             current_status = current_app.config.get('CHATBOT_STATUS')
@@ -364,8 +374,9 @@ def create_chatbot_blueprint(chatbot_config):
                 app_config = current_app.config.get('APP_CONFIG', {})
                 chatbot_kwargs = app_config.get('CHATBOT', {})
                 chatbot_instance.close(auto_summarize=auto_summarize, **chatbot_kwargs.get("CHAT_CONFIG", {}))
-                image_token_map.clear()
                 current_app.config['CHATBOT_STATUS'] = 'closed'
+                current_history.clear()
+                current_round = 0
                 print("Chatbot closed successfully via API. Status set to 'closed'. Shared instances retained but internally closed.")
                 return jsonify({"status": "Chatbot closed"})
             except Exception as e:

@@ -1,4 +1,4 @@
-from typing import Dict, List, Union, Any, Set
+from typing import Dict, List, Union, Any, Set, Optional
 from datetime import datetime
 from collections import deque
 import numpy as np
@@ -389,6 +389,9 @@ class RolePlayChatbot(BaseCharacterChatbot):
             **kwargs
         )
 
+    def ensure_initialized(self):
+        self.memory_system.ensure_initialized()
+
     def _build_prompts(self, user_input: str, **kwargs) -> List[ChatMessage]:
         """
         构建完整的prompts，包括系统信息、查询结果、风格和上下文。
@@ -412,9 +415,9 @@ class RolePlayChatbot(BaseCharacterChatbot):
 
         return prompts
 
-    def refresh_output(self, **kwargs) -> Dict[str,Any]:
+    def refresh_output(self, **kwargs) -> Optional[Dict[str,Any]]:
         if not self.latest_user_input:
-            return {"role":"system","content":"There is no user input."}
+            return None
         self._mind_flow.pop(self.latest_role_output_id,None)
         try:
             self._mind_ids.remove(self.latest_role_output_id)
@@ -446,21 +449,67 @@ class RolePlayChatbot(BaseCharacterChatbot):
 
         return response
 
-    def update_input(self, user_input: str, **kwargs) -> Dict[str,Any]:
-        self.latest_user_input = user_input
-        return self.refresh_output(**kwargs)
+    def update_input(self, user_input: str, **kwargs) -> Optional[Dict[str,Any]]:
+        if self.latest_user_input is None:
+            return None
+        else:
+            self.latest_user_input = user_input
+            return self.refresh_output(**kwargs)
 
     def summarize_current_session(self, **kwargs):
+        if self.latest_user_input is not None:
+            self.memory_system.add_memory(
+                message=self.latest_user_input,
+                source=f"{self.user}",
+                creation_time=datetime.now(),
+                metadata={
+                    "action": "speak",
+                }
+            )
+            self.latest_user_input = None
+        if self.latest_role_output is not None:
+            self.memory_system.add_memory(
+                message=self.latest_role_output,
+                source=f"{self.role}",
+                creation_time=datetime.now(),
+                metadata={
+                    "action": "speak",
+                },
+                memory_unit_id=self.latest_role_output_id
+            )
+            self.latest_role_output = None
         auto_summarize_system_message = kwargs.get("summarizing_prompt")
         auto_summarize_system_message = self.summarizing_prompt if not auto_summarize_system_message else auto_summarize_system_message
-        print(auto_summarize_system_message)
-        self.memory_system.summarize_session(self.memory_system.get_current_sesssion_id(),role=self.role,system_message=auto_summarize_system_message)
+        # print(auto_summarize_system_message)
+        role = kwargs.get("role", self.role)
+        self.memory_system.summarize_session(self.memory_system.get_current_sesssion_id(),role=role,system_message=auto_summarize_system_message)
 
     def summarize_all_session(self, **kwargs):
+        if self.latest_user_input is not None:
+            self.memory_system.add_memory(
+                message=self.latest_user_input,
+                source=f"{self.user}",
+                creation_time=datetime.now(),
+                metadata={
+                    "action": "speak",
+                }
+            )
+            self.latest_user_input = None
+        if self.latest_role_output is not None:
+            self.memory_system.add_memory(
+                message=self.latest_role_output,
+                source=f"{self.role}",
+                creation_time=datetime.now(),
+                metadata={
+                    "action": "speak",
+                },
+                memory_unit_id=self.latest_role_output_id
+            )
+            self.latest_role_output = None
         auto_summarize_system_message = kwargs.get("summarizing_prompt")
         auto_summarize_system_message = self.summarizing_prompt if not auto_summarize_system_message else auto_summarize_system_message
-
-        self.memory_system.summarize_session(self.memory_system.get_current_sesssion_id(),role=self.role,system_message=auto_summarize_system_message)
+        role = kwargs.get("role", self.role)
+        self.memory_system.summarize_long_term_memory(use_external_summary=False,role=role,system_message=auto_summarize_system_message)
 
     def start_new_session(self, auto_summarize = False, **kwargs):
         self.memory_system.start_session()
@@ -468,10 +517,9 @@ class RolePlayChatbot(BaseCharacterChatbot):
         self.latest_role_output = None
         self.latest_role_output_id = None
         self._mind_flow.clear()
-        self.memory_system.flush_context()
-        if auto_summarize:
-            self.summarize_all_session(**kwargs)
-        self.memory_system.start_session()
+        # if auto_summarize:
+        #     self.summarize_all_session(**kwargs)
+        # self.memory_system.start_session()
 
     def resume_session(self, session_id, **kwargs) -> List[Dict[str,Any]]:
         self.latest_user_input = None
@@ -480,8 +528,8 @@ class RolePlayChatbot(BaseCharacterChatbot):
         self._mind_flow.clear()
         self.memory_system.start_session(session_id)
         history = []
-        self.memory_system._restore_stm_from_session(session_id)
-        for id, unit in self.memory_system.get_stm():
+        # self.memory_system._restore_session(session_id)
+        for unit in self.memory_system.get_context():
             history.append({"role":unit.source,"content":unit.content})
         return history
 
@@ -498,9 +546,31 @@ class RolePlayChatbot(BaseCharacterChatbot):
         self.memory_system.start_session()
 
     def close(self, auto_summarize = False, **kwargs):
+        if self.latest_user_input is not None:
+            self.memory_system.add_memory(
+                message=self.latest_user_input,
+                source=f"{self.user}",
+                creation_time=datetime.now(),
+                metadata={
+                    "action": "speak",
+                }
+            )
+            self.latest_user_input = None
+        if self.latest_role_output is not None:
+            self.memory_system.add_memory(
+                message=self.latest_role_output,
+                source=f"{self.role}",
+                creation_time=datetime.now(),
+                metadata={
+                    "action": "speak",
+                },
+                memory_unit_id=self.latest_role_output_id
+            )
+            self.latest_role_output = None
         auto_summarize_system_message = kwargs.get("summarizing_prompt")
         auto_summarize_system_message = self.summarizing_prompt if not auto_summarize_system_message else auto_summarize_system_message
-        self.memory_system.close(auto_summarize=auto_summarize, system_message = auto_summarize_system_message)
+        role = kwargs.get("role", self.role)
+        self.memory_system.close(auto_summarize=auto_summarize, system_message = auto_summarize_system_message, role = role)
 
 
     def chat(self, user_input: str, **kwargs) -> Dict[str, Any]:

@@ -48,22 +48,22 @@ def _get_shared_memory_system_and_check_status(for_write_operation: bool = False
             print("MemoryEditor: Obtained MemorySystem from shared config.")
 
         blocking_statuses_for_editor = [
-            'active', 'uninitialized', 'init_failed', 'config_editing',
-            'role_graph_editing', 'standard_query_editing', 'standard_answer_editing'
+            'active', 'uninitialized', 'init_failed'
         ]
+        allowed_statused_for_editor = ['config_editing',
+            'role_graph_editing', 'standard_query_editing', 'standard_answer_editing', 'closed']
         if for_write_operation:
             if current_status in blocking_statuses_for_editor:
                 print(f"ERROR: MemoryEditor write operation attempted while system status is '{current_status}'.")
                 abort(403, f"System is busy or in a conflicting state ({current_status}). Cannot perform memory editing.")
-            elif current_status == 'closed':
+            elif current_status in allowed_statused_for_editor:
                 current_app.config['CHATBOT_STATUS'] = 'memory_editing'
-                print("MemoryEditor: Status changed from 'closed' to 'memory_editing' for write operation.")
+                print(f"MemoryEditor: Status changed from '{current_status}' to 'memory_editing' for write operation.")
             elif current_status != 'memory_editing':
                 print(f"ERROR: MemoryEditor encountered unexpected system status '{current_status}' for write operation.")
                 abort(500, f"Unexpected system status: {current_status}")
         else:
-            read_allowed_statuses = ['closed', 'memory_editing']
-            if current_status not in read_allowed_statuses:
+            if current_status not in (allowed_statused_for_editor + ["memory_editing"]):
                 print(f"INFO: MemoryEditor read operation attempted while system status is '{current_status}'. Access denied.")
                 abort(403, f"Memory editor access denied due to system status: {current_status}. Must be 'closed' or 'memory_editing'.")
 
@@ -783,6 +783,11 @@ def create_memory_editor_blueprint(memory_editor_config):
         with current_app.config['CHATBOT_STATUS_LOCK']:
             current_status = current_app.config.get('CHATBOT_STATUS')
             if current_status == 'memory_editing':
+                if memory_system:
+                    try:
+                        memory_system._flush_cache(force=True)
+                    except Exception as e:
+                        print(f"Warning: Error flushing cache during close: {e}")
                 current_app.config['CHATBOT_STATUS'] = 'closed'
                 print("MemoryEditor: User finished editing. Status changed from 'memory_editing' to 'closed'.")
                 return jsonify({"status": "Memory editing session finished. Chatbot can now be re-initialized."}), 200

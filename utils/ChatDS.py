@@ -8,7 +8,7 @@ from langchain_core.messages import (
 )
 from langchain_core.outputs import ChatGeneration, ChatResult
 from langchain_core.callbacks import CallbackManagerForLLMRun
-from openai import OpenAI
+from openai import OpenAI, APIConnectionError as OpenAIAPIConnectionError
 import os
 import httpx
 
@@ -21,13 +21,9 @@ class ChatDS(BaseChatModel):
     model_name: str = "deepseek-reasoner"
     temperature: float = 0.32
     max_tokens: Optional[int] = None
-    api_key: Optional[str] = os.getenv("API_KEY",None)
+    api_key: Optional[str] = os.getenv("API_KEY", None)
     base_url: Optional[str] = "https://api.deepseek.com"
     PROXY_URL: Optional[str] = "http://127.0.0.1:7890"
-    http_client: Optional[httpx.Client] = httpx.Client(
-        proxy=PROXY_URL,
-        transport=httpx.HTTPTransport(retries=3)
-    )
 
     @property
     def _llm_type(self) -> str:
@@ -53,10 +49,64 @@ class ChatDS(BaseChatModel):
         Returns:
             ChatResult containing the generated message.
         """
-        # Convert LangChain messages to Deepseek API format
         deepseek_messages = self._convert_messages(messages)
+        params = {
+            "model": self.model_name,
+            "messages": deepseek_messages,
+            "temperature": self.temperature,
+        }
+
+        if self.max_tokens is not None:
+            params["max_tokens"] = self.max_tokens
+
+        if stop is not None:
+            params["stop"] = stop
+
+        client_config_keys = {"api_key", "base_url", "http_client", "proxy_url"}
+        for key, value in kwargs.items():
+            if key not in client_config_keys:
+                params[key] = value
+        response = self._call_deepseek_api(**params)
+        return self._create_chat_result(response)
+
+    def _convert_messages(self, messages: List[BaseMessage]) -> List[Dict[str, str]]:
+        """
+        Convert LangChain messages to Deepseek API format.
+        """
+        deepseek_messages = []
+        for message in messages:
+            if isinstance(message, HumanMessage):
+                role = "user"
+            elif isinstance(message, AIMessage):
+                role = "assistant"
+            elif isinstance(message, SystemMessage):
+                role = "system"
+            else:
+                role = "assistant"
+
+            deepseek_messages.append({
+                "role": role,
+                "content": message.content
+            })
+
+        return deepseek_messages
+
+    def _call_deepseek_api(self, **kwargs) -> Dict[str, Any]:
+        """Use OpenAI's API as a backend for Deepseek compatibility."""
+        current_api_key = kwargs.get("api_key", self.api_key)
+        current_base_url = kwargs.get("base_url", self.base_url)
+
+        if current_api_key is None:
+            raise ValueError(
+                "API_KEY must be provided either via environment variable, class initialization, or call kwargs.")
+
+        user_provided_http_client = kwargs.get("http_client")
+        user_provided_proxy_url = kwargs.get("proxy_url")
 
         legal_keys = [
+        "model",
+        "messages",
+        "temperature",
         "frequency_penalty",
         "function_call",
         "functions",
@@ -90,88 +140,86 @@ class ChatDS(BaseChatModel):
         "extra_body",
         "timeout",
         ]
-
-        # Prepare API parameters
-        params = {
-            "model": self.model_name,
-            "messages": deepseek_messages,
-            "temperature": self.temperature,
-        }
-
-        if self.max_tokens is not None:
-            params["max_tokens"] = self.max_tokens
-
-        if stop is not None:
-            params["stop"] = stop
+        params = {}
         for key in legal_keys:
             if key in kwargs:
                 params[key] = kwargs.get(key)
 
-        # Call Deepseek API (this is a placeholder - implement actual API call)
-        response = self._call_deepseek_api(params)
+        def _execute_call(client: OpenAI) -> Dict[str, Any]:
+            # print(f"Attempting API call with client transport: {client._custom_httpx_client}")
+            response_openai = client.chat.completions.create(**params)
+            # print(f"API call successful. Usage: {response_openai.usage}")
 
-        # Process the response
-        return self._create_chat_result(response)
+            reasoning_content = None
+            if response_openai.choices and response_openai.choices[0].message:
+                reasoning_content = getattr(response_openai.choices[0].message, 'reasoning_content', None)
 
-    def _convert_messages(self, messages: List[BaseMessage]) -> List[Dict[str, str]]:
-        """
-        Convert LangChain messages to Deepseek API format.
-        """
-        deepseek_messages = []
-        for message in messages:
-            if isinstance(message, HumanMessage):
-                role = "user"
-            elif isinstance(message, AIMessage):
-                role = "assistant"
-            elif isinstance(message, SystemMessage):
-                role = "system"
+            res_data = {
+                "choices": [{
+                    "message": {
+                        "role": response_openai.choices[0].message.role,
+                        "content": response_openai.choices[0].message.content,
+                        "reasoning_content": reasoning_content
+                    }
+                }]
+            }
+            # if reasoning_content:
+            #    print(f"Reasoning Content from API: {reasoning_content}")
+            return res_data
+
+        if user_provided_http_client:
+            # print("Using user-provided http_client from call_kwargs.")
+            client = OpenAI(api_key=current_api_key, base_url=current_base_url, http_client=user_provided_http_client)
+            return _execute_call(client)
+
+        if user_provided_proxy_url:
+            # print(f"Using user-provided proxy_url from call_kwargs: {user_provided_proxy_url}")
+            custom_proxy_http_client = httpx.Client(proxy=user_provided_proxy_url,
+                                                    transport=httpx.HTTPTransport(retries=1))
+            client = OpenAI(api_key=current_api_key, base_url=current_base_url, http_client=custom_proxy_http_client)
+            return _execute_call(client)
+        try:
+            # print("Attempting direct connection (no proxy)...")
+            direct_http_client = httpx.Client(
+                transport=httpx.HTTPTransport(retries=1))  # Fewer retries for the first attempt
+            client_direct = OpenAI(api_key=current_api_key, base_url=current_base_url, http_client=direct_http_client)
+            return _execute_call(client_direct)
+        except (httpx.ConnectError, OpenAIAPIConnectionError) as e:  # Catch specific connection errors
+            # print(f"Direct connection failed: {type(e).__name__} - {e}.")
+
+            if self.PROXY_URL:
+                # print(f"Attempting connection with class PROXY_URL: {self.PROXY_URL}...")
+                try:
+                    proxy_http_client = httpx.Client(proxy=self.PROXY_URL, transport=httpx.HTTPTransport(retries=3))
+                    client_proxy = OpenAI(api_key=current_api_key, base_url=current_base_url,
+                                          http_client=proxy_http_client)
+                    return _execute_call(client_proxy)
+                except (httpx.ConnectError, OpenAIAPIConnectionError) as e_proxy:
+                    # print(f"Connection with PROXY_URL ({self.PROXY_URL}) also failed: {type(e_proxy).__name__} - {e_proxy}")
+                    raise e_proxy
             else:
-                role = "assistant"
-
-            deepseek_messages.append({
-                "role": role,
-                "content": message.content
-            })
-
-        return deepseek_messages
-
-    def _call_deepseek_api(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Use OpenAI's API as a backend for Deepseek compatibility."""
-        api_key = params.get("api_key", self.api_key)
-        base_url = params.get("base_url", self.base_url)
-        http_client = self.http_client
-        if params.get("http_client"):
-            http_client = params["http_client"]
-        elif params.get("proxy_url"):
-            http_client = params["proxy_url"]
-        client = OpenAI(
-            api_key=api_key,
-            base_url=base_url,
-            http_client=http_client
-        )
-        response = client.chat.completions.create(**params)
-        print(response.usage)
-        res = {
-            "choices": [{
-                "message": {
-                    "role": response.choices[0].message.role,
-                    "content": response.choices[0].message.content,
-                    'reasoning_content': response.choices[0].message.reasoning_content if hasattr(response.choices[0].message, 'reasoning_content') else None
-                }
-            }]
-        }
-        if hasattr(response.choices[0].message, 'reasoning_content'):
-            print(response.choices[0].message.reasoning_content)
-        return res
+                # print("No class PROXY_URL configured for fallback. Raising original direct connection error.")
+                raise e
 
     def _create_chat_result(self, response: Dict[str, Any]) -> ChatResult:
         """
         Convert Deepseek API response to LangChain ChatResult.
         """
-        if "choices" not in response or len(response["choices"]) == 0:
-            raise ValueError("No choices in response")
+        if "choices" not in response or not response["choices"]:
+            raise ValueError(f"No choices in response from API. Response: {response}")
 
-        message = response["choices"][0]["message"]
-        generation = ChatGeneration(message=AIMessage(content=message["content"], reasoning_content=message["reasoning_content"]))
+        choice = response["choices"][0]
+        if "message" not in choice:
+            raise ValueError(f"No 'message' in choice. Choice: {choice}")
 
+        message_data = choice["message"]
+        ai_message_kwargs = {}
+        if "reasoning_content" in message_data and message_data["reasoning_content"] is not None:
+            ai_message_kwargs["reasoning_content"] = message_data["reasoning_content"]
+        generation = ChatGeneration(
+            message=AIMessage(
+                content=message_data.get("content", ""),
+                additional_kwargs=ai_message_kwargs
+            )
+        )
         return ChatResult(generations=[generation])

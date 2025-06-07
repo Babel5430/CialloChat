@@ -65,7 +65,12 @@ class ChatDS(BaseChatModel):
         client_config_keys = {"api_key", "base_url", "http_client", "proxy_url"}
         for key, value in kwargs.items():
             if key not in client_config_keys:
-                params[key] = value
+                if key in ["temperature","frequency_penalty","presence_penalty","top_p"]:
+                    params[key] = float(value)
+                elif key in ["max_completion_tokens","max_tokens","n"]:
+                    params[key] = int(value)
+                else:
+                    params[key] = value
         response = self._call_deepseek_api(**params)
         return self._create_chat_result(response)
 
